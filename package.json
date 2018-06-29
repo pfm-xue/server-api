@@ -1,0 +1,31 @@
+{
+  "name": "naina",
+  "main": "app.js",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "~1.18.3",
+    "connect-redis": "^3.3.3",
+    "cors": "^2.8.4",
+    "express": "^4.16.3",
+    "lodash": "^4.17.10",
+    "log4js": "^2.7.0",
+    "meow": "^5.0.0",
+    "moment": "^2.22.1",
+    "mongoose": "^5.1.2",
+    "multer": "^1.3.0",
+    "numeral": "^2.0.6",
+    "promise-redis": "0.0.5",
+    "request": "^2.87.0",
+    "request-promise": "^4.2.2",
+    "rollbar": "^2.4.0",
+    "serve-favicon": "~2.5.0",
+    "socket.io": "^2.1.1",
+    "web-errors": "^0.1.5",
+    "xlsx-template": "^0.3.0"
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.3",
+    "eslint": "^4.19.1",
+    "eslint-plugin-import": "^2.12.0"
+  }
+}
