@@ -93,6 +93,7 @@ const adminSchema = mongoose.Schema({
   },
   adminName: String,   //管理者名前
   email: String,    //Email
+  password: String,  //Password
   telephoneNumber: String,  //  電話番号
   address: String,   // アドレス
   role: String,      //役割
