@@ -109,7 +109,7 @@ const adminSchema = mongoose.Schema({
 });
 
 
-// user:使用者
+// user:利用者
 const userSchema = mongoose.Schema({
   name: String, // 氏名
   phonetic: String, // ふりがな
@@ -215,6 +215,19 @@ const taskSchema = mongoose.Schema({
   },
 });
 
+// Template:テンプレート
+const templateSchema = mongoose.Schema({
+  project: String, // プロジェクト
+  projectData:[
+    String,     // データ
+  ],
+  delete_flag: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const Template = exports.Template = mongoose.model('Template', templateSchema);
 const Task = exports.Task = mongoose.model('Task', taskSchema);
 const Plan = exports.Plan = mongoose.model('Plan', planSchema);
 const User = exports.User = mongoose.model('User', userSchema);
