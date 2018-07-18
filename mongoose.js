@@ -161,6 +161,8 @@ const assessmentSchema = mongoose.Schema({
   cook: Number,                  // 調理
   cleaning: Number,              // 掃除
   washing: Number,               // 洗濯
+  
+  total_Short: Date,             // 評価日
   delete_flag: {
     type: Boolean,
     default: false,

@@ -7,22 +7,22 @@ const multer = require('multer');
 const path = require('path');
 
 const dest = path.join(__dirname, '..', 'public');
+const exportXlsx = require('../lib/export_xlsx');
 const upload = multer({ dest });
 const mdb = require('../mongoose');
 
 const router = express.Router();
 const checkManager = async (req) => {
   // const m = await mdb.Assessment.findById(req.$token);
-  // if (m.role !== 'super_assessment') {
+  // if (m.role !== 'super_admin') {
   //   throw new Error('auth err');
-  //}
+  // }
 };
 
 /**
-# 所有 assessment
+# all assessment信息:
 GET http://localhost:3001/mp/assessment/?page=1
 Authorization: Bearer odif2wvI8hUXIXBTcg4rarBYOfCI
-#
 */
 router.get('/', async (req, res) => {
   const { page } = req.query;
@@ -35,7 +35,6 @@ router.get('/', async (req, res) => {
     .skip((page - 1) * pageSize)
     .limit(pageSize);
   res.json({
-    success: true,
     list,
     pagination: {
       page: parseInt(page, 10),
@@ -47,33 +46,30 @@ router.get('/', async (req, res) => {
 
 /**
 # assessment信息:
-GET http://localhost:3001/mp/assessment/xxx
-#
-*/
-router.get('/xxx', async (req, res) => {
-  res.json({"websocket":true,"origins":["*:*"],"cookie_needed":false,"entropy":463037764});
-});
-
-/**
-# assessment信息:
-GET http://localhost:3001/mp/assessment/5b10e0c1082a60435c5019e2
-#
+GET http://localhost:3001/mp/assessment/5afbee7ed0e2860bdf0de484
 */
 router.get('/:assessment_id', async (req, res) => {
   const { assessment_id } = req.params;
+  console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  GET");
   const assessment = await mdb.Assessment.findById(assessment_id);
 
+  const filename = await exportXlsx.printTicketTemplate(assessment);
+
+  console.log(filename+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Name");
+
+  console.log(assessment_id);
+  console.log(assessment);
+  var list = [assessment]; 
   res.json({
-    success: true,
-    data: assessment,
+    list: list,
+    pagination: {},    
   });
 });
 
 /**
 # assessment信息:
-DELETE http://localhost:3001/mp/assessment/5b10e0c1082a60435c5019e2
+DELETE http://localhost:3001/mp/assessment/5afbee7ed0e2860bdf0de484
 Authorization: Bearer odif2wvI8hUXIXBTcg4rarBYOfCI
-#
 */
 router.delete('/:assessment_id', async (req, res, next) => {
   // check manager
@@ -93,9 +89,8 @@ POST http://localhost:3001/mp/assessment/
 Content-Type: application/json
 Authorization: Bearer odif2wvI8hUXIXBTcg4rarBYOfCI
 {
-    "username": "nakata",
-    "email": "nakata@gmail.com",
-    "password": "xxx"
+    "subject": "test #3",
+    "category": "category #1"
 }
 #
 */
@@ -104,16 +99,17 @@ router.post('/', async (req, res, next) => {
   await checkManager(req);
 
   //TODO: 频度，数量的限制
-  let assessment;
-  if (req.body._id) {
-    const data = req.body;
 
-    assessment = await mdb.Assessment.findByIdAndUpdate(req.body._id, data, {
+  let assessment;
+  if (req.body.assessmentData._id) {
+    const data = req.body.assessmentData;
+
+    assessment = await mdb.Assessment.findByIdAndUpdate(req.body.assessmentData._id, data, {
       new: true,
     });
   } else {
     const data = {
-      ...req.body,
+      ...req.body.assessmentData,
     };
     delete data._id;
     assessment = new mdb.Assessment(data);
@@ -130,9 +126,9 @@ router.post('/', async (req, res, next) => {
 
 /**
 # 上载缩略图
-# curl -X POST -H "Accept: application/json" -H "Authorization: Bearer odif2wvI8hUXIXBTcg4rarBYOfCI" -F "thumbnail=@/Assessments/zhaolei/Desktop/IMG_0861.JPG" http://localhost:3001/mp/assessment/upload
+# curl -X POST -H "Accept: application/json" -H "Authorization: Bearer odif2wvI8hUXIXBTcg4rarBYOfCI" -F "cover=@/Users/zhaolei/Desktop/IMG_0861.JPG" http://localhost:3001/mp/assessment/uploadCover
 */
-router.post('/upload', upload.single('thumbnail'), async (req, res, next) => {
+router.post('/uploadThumbnail', upload.single('thumbnail'), async (req, res, next) => {
   // check manager
   await checkManager(req);
 

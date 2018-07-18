@@ -7,6 +7,7 @@ const multer = require('multer');
 const path = require('path');
 
 const dest = path.join(__dirname, '..', 'public');
+const exportXlsx = require('../lib/export_xlsx');
 const upload = multer({ dest });
 const mdb = require('../mongoose');
 
@@ -51,6 +52,11 @@ router.get('/:plan_id', async (req, res) => {
   const { plan_id } = req.params;
   console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  GET");
   const plan = await mdb.Plan.findById(plan_id);
+
+  const filename = await exportXlsx.printTicketTemplate(plan);
+
+  console.log(filename+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Name");
+
   console.log(plan_id);
   console.log(plan);
   var list = [plan]; 
