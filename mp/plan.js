@@ -53,9 +53,9 @@ router.get('/:plan_id', async (req, res) => {
   console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  GET");
   const plan = await mdb.Plan.findById(plan_id);
 
-  const filename = await exportXlsx.printTicketTemplate(plan);
+  // const filename = await exportXlsx.printTicketTemplate(plan);
 
-  console.log(filename+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Name");
+  // console.log(filename+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Name");
 
   console.log(plan_id);
   console.log(plan);
@@ -97,31 +97,34 @@ Authorization: Bearer odif2wvI8hUXIXBTcg4rarBYOfCI
 router.post('/', async (req, res, next) => {
   // check manager
   await checkManager(req);
-
+ 
   //TODO: 频度，数量的限制
-
-  let plan;
-  if (req.body.planData._id) {
-    const data = req.body.planData;
-
-    plan = await mdb.Plan.findByIdAndUpdate(req.body.planData._id, data, {
-      new: true,
-    });
+  if (req.body.planData.printing) {
+    const filename = await exportXlsx.printTicketTemplate(req.body.planData);
   } else {
-    const data = {
-      ...req.body.planData,
-    };
-    delete data._id;
-    plan = new mdb.Plan(data);
-    await plan.save();
+    let plan;
+    if (req.body.planData._id) {
+      const data = req.body.planData;
+  
+      plan = await mdb.Plan.findByIdAndUpdate(req.body.planData._id, data, {
+        new: true,
+      });
+    } else {
+      const data = {
+        ...req.body.planData,
+      };
+      delete data._id;
+      plan = new mdb.Plan(data);
+      await plan.save();
+    }
+  
+    plan = await mdb.Plan.findById(plan._id);
+  
+    res.json({
+      success: true,
+      data: plan,
+    });
   }
-
-  plan = await mdb.Plan.findById(plan._id);
-
-  res.json({
-    success: true,
-    data: plan,
-  });
 });
 
 /**

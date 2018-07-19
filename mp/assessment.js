@@ -53,10 +53,6 @@ router.get('/:assessment_id', async (req, res) => {
   console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  GET");
   const assessment = await mdb.Assessment.findById(assessment_id);
 
-  const filename = await exportXlsx.printTicketTemplate(assessment);
-
-  console.log(filename+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Name");
-
   console.log(assessment_id);
   console.log(assessment);
   var list = [assessment]; 
@@ -100,28 +96,32 @@ router.post('/', async (req, res, next) => {
 
   //TODO: 频度，数量的限制
 
-  let assessment;
-  if (req.body.assessmentData._id) {
-    const data = req.body.assessmentData;
-
-    assessment = await mdb.Assessment.findByIdAndUpdate(req.body.assessmentData._id, data, {
-      new: true,
-    });
+  if(req.body.assessmentData.printing){
+    const filename = await exportXlsx.printTicketTemplate(req.body.assessmentData);
   } else {
-    const data = {
-      ...req.body.assessmentData,
-    };
-    delete data._id;
-    assessment = new mdb.Assessment(data);
-    await assessment.save();
+    let assessment;
+    if (req.body.assessmentData._id) {
+      const data = req.body.assessmentData;
+  
+      assessment = await mdb.Assessment.findByIdAndUpdate(req.body.assessmentData._id, data, {
+        new: true,
+      });
+    } else {
+      const data = {
+        ...req.body.assessmentData,
+      };
+      delete data._id;
+      assessment = new mdb.Assessment(data);
+      await assessment.save();
+    }
+  
+    assessment = await mdb.Assessment.findById(assessment._id);
+  
+    res.json({
+      success: true,
+      data: assessment,
+    });
   }
-
-  assessment = await mdb.Assessment.findById(assessment._id);
-
-  res.json({
-    success: true,
-    data: assessment,
-  });
 });
 
 /**
