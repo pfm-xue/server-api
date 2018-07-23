@@ -51,7 +51,9 @@ const planSchema = mongoose.Schema({
       frequency: String,// 頻度
       time: String,// 時間
       personLiable: String,// 主な実施者
+      editable: Boolean, // 編集許可
     }],
+    mastermind: String,  // プログラム立案者
   },
   // 個別機能訓練計画書Ⅱ
   planTow: {
@@ -60,12 +62,15 @@ const planSchema = mongoose.Schema({
     shortTermGoals: String,// 短期目標
     shortTermGoalsDegree: String,// 目標逹成度
     enum: [{
+      key: String,           // 唯一の鍵
       programContent: String,// プログラム内容
       attention: String,// 留意点
       frequency: String,// 頻度
       time: String,// 時間
       personLiable: String,// 主な実施者
+      editable: Boolean, // 編集許可
     }],
+    mastermind: String,  // プログラム立案者
   },
   specialNotes: String, // 特記事項
   planBook: [
