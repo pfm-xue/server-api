@@ -53,10 +53,6 @@ router.get('/:plan_id', async (req, res) => {
   console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  GET");
   const plan = await mdb.Plan.findById(plan_id);
 
-  // const filename = await exportXlsx.printTicketTemplate(plan);
-
-  // console.log(filename+"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ Name");
-
   console.log(plan_id);
   console.log(plan);
   var list = [plan]; 
@@ -116,6 +112,17 @@ router.post('/', async (req, res, next) => {
       delete data._id;
       plan = new mdb.Plan(data);
       await plan.save();
+
+      //  task 作成
+      // const listTime = req.body.planData.;
+
+      // parameter[0].additionalTraining.enum.map((item) => {
+      //   delete data._id;
+      //   task = new mdb.Task(item);
+      //   await task.save();
+      // });
+
+
     }
   
     plan = await mdb.Plan.findById(plan._id);

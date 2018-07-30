@@ -20,6 +20,7 @@ const planSchema = mongoose.Schema({
   // sex: Number, // 性別
   // birth: Date, // 生年月日
   // name: String, // 氏名
+
   user: {
     ref: 'User',
     type: mongoose.Schema.Types.ObjectId,
@@ -42,8 +43,10 @@ const planSchema = mongoose.Schema({
   // 個別機能訓練加算Ⅰ
   additionalTraining: {
     longTermGoals: String,// 長期目標
+    longCalculation: String,// 長期算定
     longTermGoalsDegree: String,// 目標逹成度
     shortTermGoals: String,// 短期目標
+    shortCalculation: String,// 短期算定
     shortTermGoalsDegree: String,// 目標逹成度
     enum: [{
       programContent: String,// プログラム内容
@@ -58,8 +61,10 @@ const planSchema = mongoose.Schema({
   // 個別機能訓練計画書Ⅱ
   planTow: {
     longTermGoals: String,// 長期目標
+    longCalculation: String,// 長期算定
     longTermGoalsDegree: String,// 目標逹成度
     shortTermGoals: String,// 短期目標
+    shortCalculation: String,// 短期算定
     shortTermGoalsDegree: String,// 目標逹成度
     enum: [{
       key: String,           // 唯一の鍵
@@ -96,13 +101,13 @@ const adminSchema = mongoose.Schema({
     type: String,
     // unique: true,
   },
-  adminName: String,   //管理者名前
-  email: String,    //Email
-  password: String,  //Password
+  adminName: String,        //管理者名前
+  email: String,            //Email
+  password: String,         //Password
   telephoneNumber: String,  //  電話番号
-  address: String,   // アドレス
-  role: String,      //役割
-  post: String,      // 職務
+  address: String,          // アドレス
+  role: String,             //役割
+  post: String,             // 職務
   delete_flag: {
     type: Boolean,
     default: false,
@@ -116,12 +121,12 @@ const adminSchema = mongoose.Schema({
 
 // user:利用者
 const userSchema = mongoose.Schema({
-  name: String, // 氏名
-  phonetic: String, // ふりがな
-  sex: String, // 性別
-  birth: Date, // 生年月日
+  name: String,             // 氏名
+  phonetic: String,         // ふりがな
+  sex: String,              // 性別
+  birth: Date,              // 生年月日
   telephoneNumber: String,  //  電話番号
-  address: String,  // アドレス
+  address: String,          // アドレス
   planBook: [{
       type: mongoose.Schema.Types.ObjectId,   // 個別機能訓綶計画
       ref: 'Plan',
@@ -138,19 +143,19 @@ const userSchema = mongoose.Schema({
 
 // assessment:アセスメント
 const assessmentSchema = mongoose.Schema({
-  //    関節可動域
+  // 関節可動域
   joint_arm: Number,            // 上肢
   joint_legs: Number,           // 下肢
   joint_runk: Number,           // 体幹
-  //    筋力
+  // 筋力
   tendon_arm: Number,           // 上肢
   tendon_legs: Number,          // 下肢
   tendon_runk: Number,          // 体幹
-  //    麻痺
+  // 麻痺
   paralysis_arm: Number,        // 上肢
   paralysis_legs: Number,       // 下肢
   paralysis_finger: Number,     // 手指
-  //    ADL Barthel Index
+  // ADL Barthel Index
   meal: Number,                  // 食事
   move: Number,                  // 車椅子〜ベッドへの移乗
   aesthetic: Number,             // 整容
@@ -161,12 +166,12 @@ const assessmentSchema = mongoose.Schema({
   change: Number,                // 着替え
   defecation: Number,            // 排便コントロール
   total: Number,                 // 合計点
-  //    家庭でのIADL
+  // 家庭でのIADL
   shopping: Number,              // 買い物
   cook: Number,                  // 調理
   cleaning: Number,              // 掃除
   washing: Number,               // 洗濯
-  
+  // 評価日
   total_Short: Date,             // 評価日
   delete_flag: {
     type: Boolean,
@@ -178,40 +183,40 @@ const assessmentSchema = mongoose.Schema({
 const taskSchema = mongoose.Schema({
   executeTime: Date,            // 実行時間
   arrivalTime: Date,            // 到着時間
-  //    関連使用者
+    // 関連使用者
   task_user: {
     ref: 'User',
     type: mongoose.Schema.Types.ObjectId,
   },
-  //    関連管理者
+    // 関連管理者
   task_admin: {
     ref: 'Admin',
     type: mongoose.Schema.Types.ObjectId,
   },
-  //    関連計画書
+    // 関連計画書
   task_plan: {
     ref: 'Plan',
     type: mongoose.Schema.Types.ObjectId,
   },
-  // 実施記録
+    // 実施記録
   recording: {
     // 実施者
     implement_admin: {
       ref: 'Admin',
       type: mongoose.Schema.Types.ObjectId,
     },
-    startTime: Date,     // StartTime
-    endTime: Date,     // EndTime
+    startTime: Date,       // StartTime
+    endTime: Date,         // EndTime
     program: String,       // プログラム
   },
-  // バイタル
+    // バイタル
   vital: {
     vital1: String,     // 体温
     vital2: String,     // 血圧
     vital3: String,     // 脈帕
     spO2: String,       // SpO2
   },
-  // 体力測定
+    // 体力測定
   determine: {
     determine1: String,
     determine2: String,
@@ -224,9 +229,9 @@ const taskSchema = mongoose.Schema({
 
 // Template:テンプレート
 const templateSchema = mongoose.Schema({
-  project: String, // プロジェクト
+  project: String,  // プロジェクト
   projectData:[
-    String,     // データ
+    String,         // データ
   ],
   delete_flag: {
     type: Boolean,

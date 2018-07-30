@@ -100,30 +100,46 @@ router.post('/', async (req, res, next) => {
   // check manager
   await checkManager(req);
 
-  console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++");
-  console.log(req.body.fields);
-  console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++");
-  
   //TODO: 频度，数量的限制
   let admin;
-  if (req.body.fields._id) {
-    const data = req.body.fields;
-
-    admin = await mdb.Admin.findByIdAndUpdate(req.body.fields._id, data, {
-      new: true,
+  
+  if (req.body.login) {
+    let status,
+     admin = await mdb.Admin.findOne({email : req.body.userName });
+    console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++ admin");
+    console.log(admin);
+    if (admin.password === req.body.password  ) {
+      status = 'ok';
+    } else {
+      status = 'error';
+    }
+    res.json({
+      status,
+      type: 'account',
+      currentAuthority: 'admin',
     });
   } else {
-    const data = {
-      ...req.body.fields,
-    };
-    delete data._id;
-    admin = new mdb.Admin(data);
-    await admin.save();
+    if (req.body.fields._id) {
+      const data = req.body.fields;
+  
+      admin = await mdb.Admin.findByIdAndUpdate(req.body.fields._id, data, {
+        new: true,
+      });
+    } else {
+      const data = {
+        ...req.body.fields,
+      };
+      delete data._id;
+      admin = new mdb.Admin(data);
+      await admin.save();
+    }
+  
+    admin = await mdb.Admin.findById(admin._id);
+
   }
 
-  admin = await mdb.Admin.findById(admin._id);
 
-  res.render('/role/physician-role');
+  // res.render('/role/physician-role');
 });
 
 /**
