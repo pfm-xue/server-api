@@ -1,10 +1,14 @@
 //user
 const config = require('../config');
 const logger = require('../lib/logging').getLogger('mp/user');
+const XLSX = require('xlsx');
 
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const _ = require('lodash');
+const fs = require('fs');
+const moment = require('moment');
 
 const dest = path.join(__dirname, '..', 'public');
 const upload = multer({ dest });
@@ -103,44 +107,131 @@ router.post('/', async (req, res, next) => {
   // check manager
   await checkManager(req);
 
-  console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++");
-  console.log(req.body.fields);
-  console.log("++++++++++++++++++++++++++++++++++++++++++++++++++++");
-  
-  //TODO: 频度，数量的限制
-  let user;
-  if (req.body.fields._id) {
-    const data = req.body.fields;
+  if (req.body.fields.printing) {
 
-    user = await mdb.User.findByIdAndUpdate(req.body.fields._id, data, {
-      new: true,
-    });
+    const list = await mdb.User.find()
+    .sort('-_id');
+      // CSV出力
+      const fileName = '使用者List.DAT';
+
+      const lsi = _.join(
+        _.map(list, (user) => {
+          console.log(user);
+          const name = user.name;
+          const phonetic = user.phonetic;
+          const birth = moment(user.birth).format('YYYY-MM-DD');
+          console.log(birth);          
+          const sex = user.sex;
+          const telephoneNumber = user.telephoneNumber;
+          const address = user.address;
+          const text = `${name},${phonetic},${birth},${sex},${telephoneNumber},${address},`;
+          return text;
+        }), '\n'
+      );
+
+
+      const content = `${'利用者氏名,ふりがな,生年月日,性別,電話番号,アドレス'}\n${lsi}`;   
+      const csv_file = path.join('/my-project/public/', fileName);
+      await fs.writeFile(csv_file, content);
+      console.log("++++++++++++++++++++++++++++++++++++++++巴啦啦++++++++++++++++++++++++++++++++++++");
   } else {
-    const data = {
-      ...req.body.fields,
-    };
-    delete data._id;
-    user = new mdb.User(data);
-    await user.save();
+    //TODO: 频度，数量的限制
+    let user;
+    if (req.body.fields._id) {
+      const data = req.body.fields;
+  
+      user = await mdb.User.findByIdAndUpdate(req.body.fields._id, data, {
+        new: true,
+      });
+    } else {
+      const data = {
+        ...req.body.fields,
+      };
+      delete data._id;
+      user = new mdb.User(data);
+      await user.save();
+    }
+  
+    user = await mdb.User.findById(user._id);
+  
+    res.json({
+      success: true,
+      data: user,
+    });
   }
-
-  user = await mdb.User.findById(user._id);
-
-  res.json({
-    success: true,
-    data: user,
-  });
 });
+
+function validNotNull(rows, cols) {
+  for (const row of rows) {
+    for (const col of cols) {
+      if (row[col] === undefined) {
+        logger.error(`行${row}列${col}的数据格式检查失败。`, row);
+        return false;
+      }
+    }
+  }
+  return true;
+}
 
 /**
 # 上载缩略图
 # curl -X POST -H "Accept: application/json" -H "Authorization: Bearer odif2wvI8hUXIXBTcg4rarBYOfCI" -F "thumbnail=@/Users/zhaolei/Desktop/IMG_0861.JPG" http://localhost:3001/mp/user/upload
 */
-router.post('/upload', upload.single('thumbnail'), async (req, res, next) => {
+router.post('/upload', upload.single('file'), async (req, res, next) => {
   // check manager
   await checkManager(req);
 
   logger.info(req.file);
+
+  const cols = ['利用者氏名', 'ふりがな', '生年月日', '性別', '電話番号', 'アドレス'];
+
+  async function processRows(rows) {
+    console.log("------------------1--------------------------");
+    // check
+    if (rows.length === 0) {
+      return '没有业务数据';
+    }
+    const user_promises = _.map(rows, async (row) => {
+      logger.debug(row[cols[2]]);
+      let data = {
+        name: row[cols[0]],
+        phonetic: row[cols[1]],
+        birth: row[cols[2]],
+        sex: row[cols[3]],
+        telephoneNumber: row[cols[4]],
+        address: row[cols[5]],
+      };
+      console.log("-----------------2--------------------data");
+      console.log(data);
+      user = new mdb.User(data);
+      await user.save();
+    });
+
+    await Promise.all(user_promises);
+  }
+
+  const template_path = path.join(__dirname, '..', 'public', req.file.filename);
+
+  const workbook = XLSX.readFile(template_path);
+  console.log("+++++++++++++++++++++++++++++++++++++++++++");
+  // console.log(workbook);
+  
+  
+  const rows = _.flatten(_.map(workbook.SheetNames, (ws) => {
+    const worksheet = workbook.Sheets[ws];
+    const rs = XLSX.utils.sheet_to_row_object_array(worksheet);
+    return rs;
+  }));
+
+  console.log(rows);
+  
+
+  if (!validNotNull(rows, cols)) {
+    return '数据解析错误';
+  }
+
+  await processRows(rows);
+  // return `${rows.length}条数据导入完毕。`;
 
   res.json({
     success: true,
