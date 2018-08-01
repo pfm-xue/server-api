@@ -32,6 +32,7 @@ router.get('/', async (req, res) => {
 
   const list = await mdb.Plan.find()
     .sort('-_id')
+    .populate('user')
     .skip((page - 1) * pageSize)
     .limit(pageSize);
   res.json({
@@ -51,7 +52,7 @@ GET http://localhost:3001/mp/plan/5afbee7ed0e2860bdf0de484
 router.get('/:plan_id', async (req, res) => {
   const { plan_id } = req.params;
   console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  GET");
-  const plan = await mdb.Plan.findById(plan_id);
+  const plan = await mdb.Plan.findById(plan_id).populate('user');
 
   console.log(plan_id);
   console.log(plan);

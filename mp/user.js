@@ -106,12 +106,14 @@ Authorization: Bearer odif2wvI8hUXIXBTcg4rarBYOfCI
 router.post('/', async (req, res, next) => {
   // check manager
   await checkManager(req);
+  const { page } = req.query;
 
   if (req.body.fields.printing) {
-
     const list = await mdb.User.find()
-    .sort('-_id');
-      // CSV出力
+    .sort('-_id')
+    .skip((page - 1) * pageSize)
+    .limit(pageSize);
+    // CSV出力
       const fileName = '使用者List.DAT';
 
       const lsi = _.join(
@@ -128,12 +130,9 @@ router.post('/', async (req, res, next) => {
           return text;
         }), '\n'
       );
-
-
       const content = `${'利用者氏名,ふりがな,生年月日,性別,電話番号,アドレス'}\n${lsi}`;   
       const csv_file = path.join('/my-project/public/', fileName);
       await fs.writeFile(csv_file, content);
-      console.log("++++++++++++++++++++++++++++++++++++++++巴啦啦++++++++++++++++++++++++++++++++++++");
   } else {
     //TODO: 频度，数量的限制
     let user;
@@ -151,14 +150,21 @@ router.post('/', async (req, res, next) => {
       user = new mdb.User(data);
       await user.save();
     }
-  
-    user = await mdb.User.findById(user._id);
-  
-    res.json({
-      success: true,
-      data: user,
-    });
   }
+
+  const list = await mdb.User.find()
+  .sort('-_id')
+  .skip((page - 1) * pageSize)
+  .limit(pageSize);
+
+  res.json({
+    list: list,
+    pagination: {
+      page: parseInt(page, 10),
+      pageSize,
+      rowCount: count,
+    },
+  });  
 });
 
 function validNotNull(rows, cols) {
