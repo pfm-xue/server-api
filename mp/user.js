@@ -32,19 +32,14 @@ router.get('/', async (req, res) => {
   const { page } = req.query;
 
   const count = await mdb.User.count();
-  const { pageSize } = config;
 
   const list = await mdb.User.find()
-    .sort('-_id')
-    .skip((page - 1) * pageSize)
-    .limit(pageSize);
+    .sort('-_id');
     console.log(list);
     
   res.json({
     list: list,
     pagination: {
-      page: parseInt(page, 10),
-      pageSize,
       rowCount: count,
     },
   });
@@ -81,7 +76,7 @@ router.delete('/:user_id', async (req, res, next) => {
   await checkManager(req);
 
   const { user_id } = req.params;
-  const user = await mdb.User.findByIdAndRemove(user_id);
+  const user = await mdb.User.find(user_id);
   console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  GET");
   console.log(user_id);
   console.log(user);
@@ -110,9 +105,7 @@ router.post('/', async (req, res, next) => {
 
   if (req.body.fields.printing) {
     const list = await mdb.User.find()
-    .sort('-_id')
-    .skip((page - 1) * pageSize)
-    .limit(pageSize);
+    .sort('-_id');
     // CSV出力
       const fileName = '使用者List.DAT';
 
@@ -130,6 +123,7 @@ router.post('/', async (req, res, next) => {
           return text;
         }), '\n'
       );
+      
       const content = `${'利用者氏名,ふりがな,生年月日,性別,電話番号,アドレス'}\n${lsi}`;   
       const csv_file = path.join('/my-project/public/', fileName);
       await fs.writeFile(csv_file, content);

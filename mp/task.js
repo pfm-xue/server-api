@@ -6,6 +6,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 
+const moment = require('moment');
 const dest = path.join(__dirname, '..', 'public');
 const upload = multer({ dest });
 const mdb = require('../mongoose');
@@ -27,21 +28,14 @@ router.get('/', async (req, res) => {
   const { page } = req.query;  
 
   const count = await mdb.Task.count(); 
-  const { pageSize } = config;
 
   const list = await mdb.Task.find()
     .sort('-_id')
-    .skip((page - 1) * pageSize)
     .populate('task_user')
-    .populate('task_admin')
-    .limit(pageSize);
-    console.log(list);
+    .populate('task_admin');
   res.json({
     list: list,
     pagination: {
-      page: parseInt(page, 10),
-      pageSize,
-      rowCount: count,
     },
   });
 });
@@ -86,6 +80,32 @@ router.delete('/:task_id', async (req, res, next) => {
   });
 });
 
+
+router.post('/time/', async (req, res, next) => {
+  // check manager
+  await checkManager(req);
+
+  //TODO: 频度，数量的限制
+
+  const time = moment(req.body.fields.time).format('YYYY-MM-DD');
+  
+  const list = await mdb.Task.find({executeTime: time })
+  .sort('-_id')
+  .populate('task_user')
+  .populate('task_admin');
+  console.log(list);
+  
+
+  res.json({
+    list: list,
+    pagination: {
+    },
+  });
+
+});
+
+
+
 /**
 # new task信息:
 POST http://localhost:3001/mp/task/
@@ -103,28 +123,21 @@ router.post('/', async (req, res, next) => {
 
   //TODO: 频度，数量的限制
 
-  let task;
-  if (req.body.fields._id) {
-    const data = req.body.fields;
-
-    task = await mdb.Task.findByIdAndUpdate(req.body.fields._id, data, {
-      new: true,
-    });
-  } else {
-    const data = {
-      ...req.body.fields,
-    };
-    delete data._id;
-    task = new mdb.Task(data);
-    await task.save();
-  }
-
-  // task = await mdb.Task.findById(task._id);
-
-  // res.json({
-  //   success: true,
-  //   data: task,
-  // });
+    let task;
+    if (req.body.fields._id) {
+      const data = req.body.fields;
+  
+      task = await mdb.Task.findByIdAndUpdate(req.body.fields._id, data, {
+        new: true,
+      });
+    } else {
+      const data = {
+        ...req.body.fields,
+      };
+      delete data._id;
+      task = new mdb.Task(data);
+      await task.save();
+    }
 });
 
 /**

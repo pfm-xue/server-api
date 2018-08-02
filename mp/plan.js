@@ -5,6 +5,7 @@ const logger = require('../lib/logging').getLogger('mp/plan');
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const moment = require('moment');
 
 const dest = path.join(__dirname, '..', 'public');
 const exportXlsx = require('../lib/export_xlsx');
@@ -25,21 +26,15 @@ GET http://localhost:3001/mp/plan/?page=1
 Authorization: Bearer odif2wvI8hUXIXBTcg4rarBYOfCI
 */
 router.get('/', async (req, res) => {
-  const { page } = req.query;
 
   const count = await mdb.Plan.count();
-  const { pageSize } = config;
 
   const list = await mdb.Plan.find()
     .sort('-_id')
-    .populate('user')
-    .skip((page - 1) * pageSize)
-    .limit(pageSize);
+    .populate('user');
   res.json({
     list,
     pagination: {
-      page: parseInt(page, 10),
-      pageSize,
       rowCount: count,
     },
   });
@@ -62,6 +57,27 @@ router.get('/:plan_id', async (req, res) => {
     pagination: {},    
   });
 });
+
+
+/**
+# plan信息:
+GET http://localhost:3001/mp/plan/5afbee7ed0e2860bdf0de484
+*/
+router.get('/user/:user_id', async (req, res) => {
+  const { user_id } = req.params;
+  console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++  uer_id");
+  console.log(user_id);
+  
+  const list = await mdb.Plan.find({user: user_id })
+  .sort('-_id')
+  .populate('user');
+  res.json({
+    list: list,
+    pagination: {},    
+  });
+});
+
+
 
 /**
 # plan信息:
@@ -94,45 +110,73 @@ Authorization: Bearer odif2wvI8hUXIXBTcg4rarBYOfCI
 router.post('/', async (req, res, next) => {
   // check manager
   await checkManager(req);
- 
-  //TODO: 频度，数量的限制
-  if (req.body.planData.printing) {
-    const filename = await exportXlsx.printTicketTemplate(req.body.planData);
-  } else {
-    let plan;
-    if (req.body.planData._id) {
-      const data = req.body.planData;
-  
-      plan = await mdb.Plan.findByIdAndUpdate(req.body.planData._id, data, {
-        new: true,
-      });
+
+    //TODO: 频度，数量的限制
+    if (req.body.planData.printing) {
+      const filename = await exportXlsx.printTicketTemplate(req.body.planData);
     } else {
-      const data = {
-        ...req.body.planData,
-      };
-      delete data._id;
-      plan = new mdb.Plan(data);
-      await plan.save();
-
-      //  task 作成
-      // const listTime = req.body.planData.;
-
-      // parameter[0].additionalTraining.enum.map((item) => {
-      //   delete data._id;
-      //   task = new mdb.Task(item);
-      //   await task.save();
-      // });
-
-
-    }
-  
-    plan = await mdb.Plan.findById(plan._id);
-  
-    res.json({
-      success: true,
-      data: plan,
-    });
-  }
+        let plan;
+        if (req.body.planData._id) {
+          const data = req.body.planData;
+      
+          plan = await mdb.Plan.findByIdAndUpdate(req.body.planData._id, data, {
+            new: true,
+          });
+        } else {
+          const data = {
+            ...req.body.planData,
+          };
+          delete data._id;
+          plan = new mdb.Plan(data);
+          await plan.save();
+    
+          //  task 作成
+          const starttime = moment(data.createDate).format('YYYY-MM-DD');
+          const endTime = moment(starttime).add(3, 'M');
+    
+          var nextDate = starttime;
+          let task;
+          let taskData = {
+            executeTime: '',
+            task_user: data.user,
+            task_plan: plan._id,
+            recording: {
+              startTime: '',
+              endTime: '',
+              program: '',
+            },
+            vital: {
+              vital1: '',
+              vital2: '',
+              vital3: '',
+              spO2: '',
+            },
+          };
+          for (let i = 0; i < 100; i += 1) {
+            if (moment(endTime).isBefore(nextDate)) {
+              break;
+            }
+            if (moment(nextDate).format('dddd') === "Wednesday") {
+              taskData.executeTime = moment(nextDate).format('YYYY-MM-DD');
+              task = new mdb.Task(taskData);
+              await task.save();
+            }
+            if (moment(nextDate).format('dddd') === "Friday") {
+              taskData.executeTime = moment(nextDate).format('YYYY-MM-DD');
+              task = new mdb.Task(taskData);
+              await task.save();
+            } 
+            nextDate = moment(nextDate).add(1, 'd');
+          }
+        }
+        plan = await mdb.Plan.findById(plan._id);
+        
+        var list = [plan]; 
+        res.json({
+          list: list,
+          pagination: {},    
+        });
+      } 
 });
 
 /**
