@@ -84,6 +84,44 @@ router.delete('/:admin_id', async (req, res, next) => {
   });
 });
 
+
+router.post('/search/', async (req, res, next) => {
+  // check manager
+  await checkManager(req);
+
+  //TODO: 频度，数量的限制
+  let list;
+  let search = {}
+  const adminName = req.body.fields.adminName;
+  const role = req.body.fields.role;
+    if (!adminName || !role) {
+      search = {
+        $or: [{
+          adminName: adminName,
+        }, {
+          role: role,
+        },
+        ],
+      };
+    }
+    if (adminName && role ) {
+      search = {
+        adminName: adminName,
+        role: role,
+      }
+    } 
+    
+    list = await mdb.Admin.find(search).sort('-_id');
+    
+    res.json({
+      list: list,
+      pagination: {
+      },
+    });
+});
+
+
+
 /**
 # new admin信息:
 POST http://localhost:3001/mp/admin/
@@ -134,12 +172,16 @@ router.post('/', async (req, res, next) => {
       await admin.save();
     }
   
-    admin = await mdb.Admin.findById(admin._id);
+      const list = await mdb.Admin.find()
+      .sort('-_id');
+      
+      res.json({
+        list: list,
+        pagination: {
+        },
+      });
 
   }
-
-
-  // res.render('/role/physician-role');
 });
 
 /**

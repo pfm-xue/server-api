@@ -86,6 +86,41 @@ router.delete('/:user_id', async (req, res, next) => {
   });
 });
 
+router.post('/search/', async (req, res, next) => {
+  // check manager
+  await checkManager(req);
+
+  //TODO: 频度，数量的限制
+  let list;
+  let search = {}
+  const name = req.body.fields.name;
+  const sex = req.body.fields.sex;
+    if (!name || !sex) {
+      search = {
+        $or: [{
+          name: name,
+        }, {
+          sex: sex,
+        },
+        ],
+      };
+    }
+    if (name && sex ) {
+      search = {
+        name: name,
+        sex: sex,
+      }
+    } 
+    
+    list = await mdb.User.find(search).sort('-_id');
+    
+    res.json({
+      list: list,
+      pagination: {
+      },
+    });
+});
+
 /**
 # new user信息:
 POST http://localhost:3001/mp/user/
@@ -147,16 +182,11 @@ router.post('/', async (req, res, next) => {
   }
 
   const list = await mdb.User.find()
-  .sort('-_id')
-  .skip((page - 1) * pageSize)
-  .limit(pageSize);
+  .sort('-_id');
 
   res.json({
     list: list,
     pagination: {
-      page: parseInt(page, 10),
-      pageSize,
-      rowCount: count,
     },
   });  
 });

@@ -113,12 +113,15 @@ router.post('/', async (req, res, next) => {
     await template.save();
   }
 
-  // template = await mdb.Template.findById(template._id);
+  const list = await mdb.Template.find()
+  .sort('-_id');
 
-  // res.json({
-  //   success: true,
-  //   data: template,
-  // });
+  res.json({
+    list: list,
+    pagination: {
+    },
+  });
+
 });
 
 /**
