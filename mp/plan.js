@@ -96,6 +96,40 @@ router.delete('/:plan_id', async (req, res, next) => {
   });
 });
 
+router.post('/search/', async (req, res, next) => {
+  // check manager
+  await checkManager(req);
+
+  //TODO: 频度，数量的限制
+
+  let search = {};
+    const searchData = req.body.planData.value;
+    if (searchData) {
+      search = {
+        $or: [{
+          specialNotes: {
+            $regex: `.*${searchData}.*`,
+          },
+        }, {
+          planAuthor: {
+            $regex: `.*${searchData}.*`,
+          },
+        }],
+      };
+    }
+  
+  const list = await mdb.Plan.find(search)
+  .sort('-_id')
+  .populate('user');
+  console.log(list);
+  
+  res.json({
+    list: list,
+    pagination: {
+    },
+  });
+});
+
 /**
 # new plan信息:
 POST http://localhost:3001/mp/plan/

@@ -81,15 +81,34 @@ router.delete('/:task_id', async (req, res, next) => {
 });
 
 
-router.post('/time/', async (req, res, next) => {
+router.post('/search/', async (req, res, next) => {
   // check manager
   await checkManager(req);
 
   //TODO: 频度，数量的限制
+  const fields = req.body.fields;
 
-  const time = moment(req.body.fields.time).format('YYYY-MM-DD');
+  let search = {};
+  if(fields.value){    
+    if (fields.type === "time") {
+      const time = moment(fields.value).format('YYYY-MM-DD');
+      search = {
+        executeTime: time
+      };
+    }
+    if (fields.type === "search") {
+      const searchData = moment(fields.value).format('YYYY-MM-DD');
+      search = {
+        $or: [{
+          arrivalTime: searchData,
+        }, {
+          executeTime: searchData,
+        }],
+      };
+    }
+  }
   
-  const list = await mdb.Task.find({executeTime: time })
+  const list = await mdb.Task.find(search)
   .sort('-_id')
   .populate('task_user')
   .populate('task_admin');
