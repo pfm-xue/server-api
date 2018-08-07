@@ -10,8 +10,8 @@ const _ = require('lodash');
 const fs = require('fs');
 const moment = require('moment');
 
-const dest = path.join(__dirname, '..', 'public');
-const upload = multer({ dest });
+const dest = path.join(__dirname, '..', 'public/image');
+const upload = multer({ dest  });
 const mdb = require('../mongoose');
 
 const router = express.Router();
@@ -266,6 +266,22 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
   res.json({
     success: true,
     result: req.file.filename,
+  });
+});
+
+/**
+# 上载缩略图
+# curl -X POST -H "Accept: application/json" -H "Authorization: Bearer odif2wvI8hUXIXBTcg4rarBYOfCI" -F "cover=@/Users/zhaolei/Desktop/IMG_0861.JPG" http://localhost:3001/mp/user/uploadCover
+*/
+router.post('/uploadCover', upload.single('logo'), async (req, res, next) => {
+  // check manager
+  await checkManager(req);
+  
+  logger.info(req.file);
+
+  res.json({
+    success: true,
+    result: req.file,
   });
 });
 

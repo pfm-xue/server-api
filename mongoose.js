@@ -132,9 +132,10 @@ const userSchema = mongoose.Schema({
       ref: 'Plan',
       index: true,
     }],
-  image:[
-    String,     // 画像
-  ],
+  image:[{
+    name: String,     // 画像名前
+    patch: String,     // 画像名前
+  }],
   delete_flag: {
     type: Boolean,
     default: false,
@@ -189,10 +190,10 @@ const taskSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
   },
     // 関連管理者
-  task_admin: {
-    ref: 'Admin',
-    type: mongoose.Schema.Types.ObjectId,
-  },
+  // task_admin: {
+  //   ref: 'Admin',
+  //   type: mongoose.Schema.Types.ObjectId,
+  // },
     // 関連計画書
   task_plan: {
     ref: 'Plan',
@@ -216,11 +217,15 @@ const taskSchema = mongoose.Schema({
     vital3: String,     // 脈帕
     spO2: String,       // SpO2
   },
-    // 体力測定
-  determine: {
-    determine1: String,
-    determine2: String,
-  },
+    // 体力測定-アセスメント
+  assessment: {
+    ref: 'UAssessmenter',
+    type: mongoose.Schema.Types.ObjectId,
+  },    
+  // determine: {
+  //   determine1: String,
+  //   determine2: String,
+  // },
   delete_flag: {
     type: Boolean,
     default: false,
